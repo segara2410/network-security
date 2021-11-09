@@ -214,12 +214,12 @@ def cbc_decrypt(k1: int, iv: str, ciphertext: str) -> str:
 
 def ctr_encrypt(k1: int, iv: int, plaintext: str) -> str:
     return "".join(
-        chr(encrypt(k1, iv + i) ^ ord(j)) for i, j in enumerate(plaintext)
+        chr(encrypt(k1, (iv + i) % 256) ^ ord(j)) for i, j in enumerate(plaintext)
     )
 
 def ctr_decrypt(k1: int, iv: int, ciphertext: str) -> str:
     return "".join(
-        chr(encrypt(k1, iv + i) ^ ord(j)) for i, j in enumerate(ciphertext)
+        chr(encrypt(k1, (iv + i) % 256) ^ ord(j)) for i, j in enumerate(ciphertext)
     )
 
 if __name__ == '__main__':
