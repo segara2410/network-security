@@ -222,6 +222,95 @@ def ctr_decrypt(k1: int, iv: int, ciphertext: str) -> str:
         chr(encrypt(k1, (iv + i) % 256) ^ ord(j)) for i, j in enumerate(ciphertext)
     )
 
+# MAC
+def MAC(key: int, msg: str):
+    time = 0
+    index = 0
+    textToProcess = ""
+
+    for i in msg:
+        i = ord(i)
+        if (time == 0):
+            i = encrypt(key, i)
+            time = 1
+            textToProcess += chr(i)
+        else:
+            i = i ^ ord(textToProcess[index-1])
+            i = encrypt(key, i)
+            textToProcess += chr(i)
+        index += 1
+    
+    for i in textToProcess: 
+        if (not isinstance(i, str)):
+            i = chr(i)
+
+
+    print("textProcess: ", textToProcess)
+    return textToProcess[11:24]
+
+# Internal
+def encrypt_internal(key: int, message: str):
+    F = MAC(key, message)
+    F = message + '|' + F
+    textToProcess = ""
+
+    for i in F:
+        i = ord(i)
+        i = encrypt(key, i)
+        textToProcess += chr(i)
+
+    return textToProcess
+
+def decrypt_internal(key: int, ciphertext: str):
+    textToProcess = ""
+    valid = False
+    F = ""
+
+    for i in ciphertext:
+        i = ord(i)
+        i = decrypt(key, i)
+        textToProcess += chr(i)
+    
+    M = textToProcess.split("|")[0]
+    F = textToProcess.split("|")[1]
+
+    if MAC(key, M) == F:
+      valid = True
+    
+    return M, valid
+
+# Eksternal
+def encrypt_external(key: int, message: str):
+    textToProcess = ""
+
+    for i in message:
+        i = ord(i)
+        i = encrypt(key, i)
+        textToProcess += chr(i)
+
+    F = MAC(key, textToProcess)
+    F = textToProcess + '|' + F
+
+    return F
+
+def decrypt_external(key: int, ciphertext: str):
+    textToProcess = ""
+    valid = False
+    F = ""
+    
+    M = ciphertext.split("|")[0]
+    F = ciphertext.split("|")[1]
+
+    if MAC(key, M) == F:
+       valid = True
+       
+    for i in M:
+        i = ord(i)
+        i = decrypt(key, i)
+        textToProcess += chr(i)
+    
+    return textToProcess, valid
+
 if __name__ == '__main__':
     # main_original()
     # st = "WAHYU"
@@ -272,9 +361,24 @@ if __name__ == '__main__':
     plain = ctr_decrypt(0b1110001110, iv, enc_ctr)
     print("Decrypted: ", plain, "\n")
   
-    # Anggota Kelompok:
-    # Kresna Adhi Pramana - 05111840000072
-    # Ardy Wahyu Setyawan - 05111840000050
-    # Excel Deo Cornelius - 05111840000117
-    # Muhammad Rafi Yudhistira - 05111840000115
-    # Segara Bhagas Dagsapurwa - 05111840000037
+    # MAC
+    print("--- MAC ---")
+    print("Plain Text: anja\n")
+
+    # Contoh Internal
+    print("--- Contoh Internal ---")
+    cipher_internal = encrypt_internal(0b1110001110, "anja")
+    print("Encrypt Internal: ", cipher_internal)
+
+    hasil_internal, valid_internal = decrypt_internal(0b1110001110, cipher_internal)
+    print("Hasil Internal: ", hasil_internal)
+    print("Valid Internal: ", valid_internal, "\n")
+
+    # Contoh Eksternal
+    print("--- Contoh Eksternal ---")
+    cipher_external = encrypt_external(0b1110001110, "anja")
+    print("Encrypt Eksternal: ", cipher_external)
+
+    hasil_external, valid_external = decrypt_external(0b1110001110, cipher_external)
+    print("Hasil Eksternal: ", hasil_external)
+    print("Valid Eksternal: ", valid_external, "\n")
