@@ -13,13 +13,13 @@ def hash(plaintext: str) -> str:
     h.update(plaintext.encode('utf-8'))
     return "".join(str(hex(i)) + "/" for i in h.digest())
 
-def valid_check(message: str, private_key: tuple) -> None:
+def valid_check(message: str, public_key: tuple) -> None:
     realtext, encrypt_hashed = unconcat(message)
 
     hashed = hash(realtext)
     print("\nhashed    =", hashed)
 
-    decrypted = decrypt(encrypt_hashed, private_key)
+    decrypted = decrypt(encrypt_hashed, public_key)
     print("decrypted =", decrypted)
 
     assert hashed == decrypted
@@ -34,9 +34,9 @@ if __name__ == '__main__':
     print("plaintext =", plaintext, "\n")
     hashed = hash(plaintext)
 
-    ctext = encrypt(hashed, public_key)
+    ctext = encrypt(hashed, private_key)
     print("encrypted  =", ctext)
 
     message = concat(plaintext, ctext)
 
-    valid_check(message, private_key)
+    valid_check(message, public_key)
